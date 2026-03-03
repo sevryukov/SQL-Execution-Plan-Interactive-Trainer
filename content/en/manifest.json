@@ -1,0 +1,16 @@
+{
+  "topics": [
+    {
+      "id": "module1",
+      "title": "Nested Loop Join",
+      "theoryFile": "module1.md",
+      "taskFile": "module1.json"
+    },
+    {
+      "id": "module2",
+      "title": "Index Seek vs Table Scan",
+      "theoryFile": "module2.md",
+      "taskFile": "module2.json"
+    }
+  ]
+}
