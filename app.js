@@ -75,6 +75,9 @@ const dom = {
   feedback: document.getElementById("feedback")
 };
 
+/**
+ * Safely parse saved state and merge with defaults.
+ */
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -90,14 +93,17 @@ function loadState() {
   }
 }
 
+/** Persist state on each important transition. */
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+/** Helper: returns localized UI text with English fallback. */
 function t(key) {
   return uiText[state.language]?.[key] || uiText.en[key] || key;
 }
 
+/** Update static labels in the selected language. */
 function renderUiLabels() {
   document.documentElement.lang = state.language;
   dom.appTitle.textContent = t("appTitle");
@@ -112,10 +118,14 @@ function renderUiLabels() {
   renderScore();
 }
 
+/** Score rendering is isolated because it changes after submissions. */
 function renderScore() {
   dom.scoreValue.textContent = String(state.score);
 }
 
+/**
+ * Fetch JSON with robust error messages.
+ */
 async function fetchJson(path) {
   const response = await fetch(path);
   if (!response.ok) {
@@ -124,6 +134,9 @@ async function fetchJson(path) {
   return response.json();
 }
 
+/**
+ * Fetch markdown and convert to HTML using marked.js CDN library.
+ */
 async function fetchMarkdownAsHtml(path) {
   const response = await fetch(path);
   if (!response.ok) {
@@ -133,6 +146,10 @@ async function fetchMarkdownAsHtml(path) {
   return marked.parse(markdown);
 }
 
+/**
+ * Load language manifest. If previous current topic does not exist in new language,
+ * reset to the first available topic.
+ */
 async function loadManifest() {
   currentManifest = await fetchJson(`content/${state.language}/manifest.json`);
   if (!Array.isArray(currentManifest.topics) || currentManifest.topics.length === 0) {
@@ -146,6 +163,7 @@ async function loadManifest() {
   saveState();
 }
 
+/** Build topic buttons from manifest metadata. */
 function renderTopicNavigation() {
   dom.topicList.innerHTML = "";
 
@@ -216,6 +234,13 @@ function renderTask(taskData) {
   dom.submitButton.onclick = () => handleTaskSubmit(taskData);
 }
 
+  // Register single-use submit callback for this specific task data.
+  dom.submitButton.onclick = () => handleTaskSubmit(taskData);
+}
+
+/**
+ * Evaluate selected answer, give localized feedback, and update score only once/topic.
+ */
 function handleTaskSubmit(taskData) {
   const selected = document.querySelector('input[name="task-option"]:checked');
   if (!selected) {
@@ -241,11 +266,15 @@ function handleTaskSubmit(taskData) {
   }
 }
 
+/** Unified feedback box rendering. */
 function showFeedback(type, message) {
   dom.feedback.className = `feedback ${type}`;
   dom.feedback.textContent = message;
 }
 
+/**
+ * Core loader for both theory markdown and practice task JSON.
+ */
 async function loadCurrentTopicContent() {
   const topic = currentManifest.topics.find((item) => item.id === state.currentTopic);
   if (!topic) return;
@@ -271,6 +300,9 @@ async function loadCurrentTopicContent() {
   }
 }
 
+/**
+ * Full app bootstrap sequence.
+ */
 async function initializeApp() {
   loadState();
   renderUiLabels();
@@ -286,6 +318,7 @@ async function initializeApp() {
   }
 }
 
+/** Handle language switch and reload all language-specific content. */
 dom.languageSwitcher.addEventListener("change", async (event) => {
   state.language = event.target.value;
   saveState();
