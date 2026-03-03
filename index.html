@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL Execution Plan Simulator</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Topic navigation">
+        <header class="sidebar-header">
+          <h1 id="app-title">SQL Plan Trainer</h1>
+          <p id="app-subtitle">Micro-learning simulator</p>
+        </header>
+
+        <nav>
+          <h2 class="nav-title" id="topics-label">Topics</h2>
+          <ul id="topic-list" class="topic-list" aria-live="polite"></ul>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="top-bar">
+          <div class="score-box" aria-live="polite">
+            <span id="score-label">Score</span>
+            <strong id="score-value">0</strong>
+          </div>
+
+          <div class="controls">
+            <label for="language-switcher" id="language-label">Language</label>
+            <select id="language-switcher" aria-label="Choose application language">
+              <option value="en">English</option>
+              <option value="ru">Русский</option>
+            </select>
+          </div>
+        </header>
+
+        <section class="content-grid">
+          <article class="panel theory-panel" aria-labelledby="theory-heading">
+            <h2 id="theory-heading">Theory</h2>
+            <div id="theory-content" class="markdown-body">
+              <p class="placeholder">Select a topic to load theory content.</p>
+            </div>
+          </article>
+
+          <section class="panel practice-panel" aria-labelledby="practice-heading">
+            <h2 id="practice-heading">Practice</h2>
+            <div id="task-content">
+              <p class="placeholder">Practice task will appear here.</p>
+            </div>
+            <button id="submit-answer" class="submit-btn" type="button">Submit answer</button>
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
