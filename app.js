@@ -1,0 +1,315 @@
+/**
+ * SQL Execution Plan Simulator (frontend-only engine)
+ * ---------------------------------------------------
+ * Responsibilities:
+ * - Restore and persist user state in localStorage
+ * - Fetch language-specific manifests, theory markdown, and task JSON files
+ * - Render topic navigation, theory panel, practice panel, and feedback
+ * - Evaluate answers and award points once per topic
+ * - Handle graceful fallback when fetch/content errors happen
+ */
+
+const STORAGE_KEY = "sqlPlanTrainerState";
+
+const uiText = {
+  en: {
+    appTitle: "SQL Plan Trainer",
+    subtitle: "Micro-learning simulator",
+    topics: "Topics",
+    score: "Score",
+    language: "Language",
+    theory: "Theory",
+    practice: "Practice",
+    submit: "Submit answer",
+    loadingTheory: "Loading theory...",
+    loadingTask: "Loading task...",
+    selectTopic: "Select a topic to load theory content.",
+    noTask: "Practice task will appear here.",
+    noSelection: "Please select an answer before submitting.",
+    genericError: "Could not load content. Please try another topic."
+  },
+  ru: {
+    appTitle: "Тренажёр плана SQL",
+    subtitle: "Симулятор микро-обучения",
+    topics: "Темы",
+    score: "Баллы",
+    language: "Язык",
+    theory: "Теория",
+    practice: "Практика",
+    submit: "Отправить ответ",
+    loadingTheory: "Загрузка теории...",
+    loadingTask: "Загрузка задания...",
+    selectTopic: "Выберите тему для загрузки теории.",
+    noTask: "Здесь появится практическое задание.",
+    noSelection: "Пожалуйста, выберите вариант ответа перед отправкой.",
+    genericError: "Не удалось загрузить контент. Попробуйте другую тему."
+  }
+};
+
+/** Shared application state persisted in localStorage. */
+let state = {
+  language: "en",
+  score: 0,
+  currentTopic: null,
+  completedTopics: {}
+};
+
+/** Cached manifest for current language to avoid duplicate fetches. */
+let currentManifest = { topics: [] };
+
+// Cached DOM nodes used by rendering/event handlers.
+const dom = {
+  appTitle: document.getElementById("app-title"),
+  subtitle: document.getElementById("app-subtitle"),
+  topicsLabel: document.getElementById("topics-label"),
+  topicList: document.getElementById("topic-list"),
+  scoreLabel: document.getElementById("score-label"),
+  scoreValue: document.getElementById("score-value"),
+  languageLabel: document.getElementById("language-label"),
+  languageSwitcher: document.getElementById("language-switcher"),
+  theoryHeading: document.getElementById("theory-heading"),
+  practiceHeading: document.getElementById("practice-heading"),
+  theoryContent: document.getElementById("theory-content"),
+  taskContent: document.getElementById("task-content"),
+  submitButton: document.getElementById("submit-answer"),
+  feedback: document.getElementById("feedback")
+};
+
+/**
+ * Safely parse saved state and merge with defaults.
+ */
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    state = {
+      ...state,
+      ...parsed,
+      completedTopics: parsed.completedTopics || {}
+    };
+  } catch (error) {
+    console.warn("Failed to parse saved state, resetting.", error);
+  }
+}
+
+/** Persist state on each important transition. */
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/** Helper: returns localized UI text with English fallback. */
+function t(key) {
+  return uiText[state.language]?.[key] || uiText.en[key] || key;
+}
+
+/** Update static labels in the selected language. */
+function renderUiLabels() {
+  document.documentElement.lang = state.language;
+  dom.appTitle.textContent = t("appTitle");
+  dom.subtitle.textContent = t("subtitle");
+  dom.topicsLabel.textContent = t("topics");
+  dom.scoreLabel.textContent = t("score");
+  dom.languageLabel.textContent = t("language");
+  dom.theoryHeading.textContent = t("theory");
+  dom.practiceHeading.textContent = t("practice");
+  dom.submitButton.textContent = t("submit");
+  dom.languageSwitcher.value = state.language;
+  renderScore();
+}
+
+/** Score rendering is isolated because it changes after submissions. */
+function renderScore() {
+  dom.scoreValue.textContent = String(state.score);
+}
+
+/**
+ * Fetch JSON with robust error messages.
+ */
+async function fetchJson(path) {
+  const response = await fetch(path);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JSON: ${path} (${response.status})`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetch markdown and convert to HTML using marked.js CDN library.
+ */
+async function fetchMarkdownAsHtml(path) {
+  const response = await fetch(path);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Markdown: ${path} (${response.status})`);
+  }
+  const markdown = await response.text();
+  return marked.parse(markdown);
+}
+
+/**
+ * Load language manifest. If previous current topic does not exist in new language,
+ * reset to the first available topic.
+ */
+async function loadManifest() {
+  currentManifest = await fetchJson(`content/${state.language}/manifest.json`);
+  if (!Array.isArray(currentManifest.topics) || currentManifest.topics.length === 0) {
+    throw new Error("Manifest does not include topics array.");
+  }
+
+  const exists = currentManifest.topics.some((topic) => topic.id === state.currentTopic);
+  if (!exists) {
+    state.currentTopic = currentManifest.topics[0].id;
+  }
+  saveState();
+}
+
+/** Build topic buttons from manifest metadata. */
+function renderTopicNavigation() {
+  dom.topicList.innerHTML = "";
+
+  currentManifest.topics.forEach((topic) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `topic-btn ${topic.id === state.currentTopic ? "active" : ""}`;
+    btn.textContent = topic.title;
+    btn.dataset.topicId = topic.id;
+    btn.addEventListener("click", () => {
+      state.currentTopic = topic.id;
+      saveState();
+      renderTopicNavigation();
+      loadCurrentTopicContent();
+    });
+
+    li.appendChild(btn);
+    dom.topicList.appendChild(li);
+  });
+}
+
+/**
+ * Render a multiple-choice task from task JSON.
+ */
+function renderTask(taskData) {
+  dom.taskContent.innerHTML = "";
+
+  const prompt = document.createElement("p");
+  prompt.textContent = taskData.prompt;
+  dom.taskContent.appendChild(prompt);
+
+  taskData.options.forEach((option, index) => {
+    const label = document.createElement("label");
+    label.className = "option-label";
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "task-option";
+    input.value = String(index);
+
+    const text = document.createElement("span");
+    text.textContent = option;
+
+    label.append(input, text);
+    dom.taskContent.appendChild(label);
+  });
+
+  // Register single-use submit callback for this specific task data.
+  dom.submitButton.onclick = () => handleTaskSubmit(taskData);
+}
+
+/**
+ * Evaluate selected answer, give localized feedback, and update score only once/topic.
+ */
+function handleTaskSubmit(taskData) {
+  const selected = document.querySelector('input[name="task-option"]:checked');
+  if (!selected) {
+    showFeedback("error", t("noSelection"));
+    return;
+  }
+
+  const selectedIndex = Number(selected.value);
+  const isCorrect = selectedIndex === taskData.correctIndex;
+
+  if (isCorrect) {
+    const alreadyCompleted = state.completedTopics[state.currentTopic] === true;
+    if (!alreadyCompleted) {
+      state.score += Number(taskData.points || 0);
+      state.completedTopics[state.currentTopic] = true;
+      saveState();
+      renderScore();
+    }
+
+    showFeedback("success", taskData.feedback.correct);
+  } else {
+    showFeedback("error", taskData.feedback.incorrect);
+  }
+}
+
+/** Unified feedback box rendering. */
+function showFeedback(type, message) {
+  dom.feedback.className = `feedback ${type}`;
+  dom.feedback.textContent = message;
+}
+
+/**
+ * Core loader for both theory markdown and practice task JSON.
+ */
+async function loadCurrentTopicContent() {
+  const topic = currentManifest.topics.find((item) => item.id === state.currentTopic);
+  if (!topic) return;
+
+  dom.theoryContent.innerHTML = `<p class="placeholder">${t("loadingTheory")}</p>`;
+  dom.taskContent.innerHTML = `<p class="placeholder">${t("loadingTask")}</p>`;
+  dom.feedback.className = "feedback";
+  dom.feedback.textContent = "";
+
+  try {
+    const [theoryHtml, taskData] = await Promise.all([
+      fetchMarkdownAsHtml(`content/${state.language}/theory/${topic.theoryFile}`),
+      fetchJson(`content/${state.language}/tasks/${topic.taskFile}`)
+    ]);
+
+    dom.theoryContent.innerHTML = theoryHtml;
+    renderTask(taskData);
+  } catch (error) {
+    console.error(error);
+    dom.theoryContent.innerHTML = `<p class="placeholder">${t("genericError")}</p>`;
+    dom.taskContent.innerHTML = `<p class="placeholder">${t("noTask")}</p>`;
+    showFeedback("error", t("genericError"));
+  }
+}
+
+/**
+ * Full app bootstrap sequence.
+ */
+async function initializeApp() {
+  loadState();
+  renderUiLabels();
+
+  try {
+    await loadManifest();
+    renderTopicNavigation();
+    await loadCurrentTopicContent();
+  } catch (error) {
+    console.error("Initialization failed", error);
+    dom.theoryContent.innerHTML = `<p class="placeholder">${t("genericError")}</p>`;
+    dom.taskContent.innerHTML = `<p class="placeholder">${t("noTask")}</p>`;
+  }
+}
+
+/** Handle language switch and reload all language-specific content. */
+dom.languageSwitcher.addEventListener("change", async (event) => {
+  state.language = event.target.value;
+  saveState();
+  renderUiLabels();
+
+  try {
+    await loadManifest();
+    renderTopicNavigation();
+    await loadCurrentTopicContent();
+  } catch (error) {
+    console.error("Language switch failed", error);
+    showFeedback("error", t("genericError"));
+  }
+});
+
+initializeApp();

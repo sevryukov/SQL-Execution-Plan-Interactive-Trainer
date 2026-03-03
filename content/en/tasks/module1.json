@@ -1,0 +1,15 @@
+{
+  "prompt": "For a query joining Orders (small filtered set) to OrderItems (indexed by OrderID), which join operator is usually preferred?",
+  "options": [
+    "Hash Join",
+    "Nested Loop Join",
+    "Merge Join",
+    "Cartesian Product"
+  ],
+  "correctIndex": 1,
+  "points": 10,
+  "feedback": {
+    "correct": "Correct! Nested Loop Join is typically efficient when the outer set is small and the inner side can be searched via index.",
+    "incorrect": "Not quite. Re-check the conditions: small outer set + index on join key usually favors Nested Loop Join."
+  }
+}
