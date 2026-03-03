@@ -1,4 +1,6 @@
 {
+  "diagramTitle": "Predicate and access path",
+  "diagram": "WHERE OrderDate = '2024-01-10'\n\nOrders(OrderDate) index exists\n\nB-Tree root\n   |\n   +--> branch --> leaf[key='2024-01-10'] --> row pointers",
   "prompt": "Which condition most strongly encourages an Index Seek?",
   "options": [
     "Predicate uses a function around the indexed column",

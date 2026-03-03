@@ -188,9 +188,28 @@ function renderTopicNavigation() {
 
 /**
  * Render a multiple-choice task from task JSON.
+ * Supports optional `diagramTitle` + `diagram` to show ASCII visual helpers.
  */
 function renderTask(taskData) {
   dom.taskContent.innerHTML = "";
+
+  if (taskData.diagram) {
+    const diagramWrap = document.createElement("div");
+    diagramWrap.className = "ascii-diagram";
+
+    if (taskData.diagramTitle) {
+      const diagramTitle = document.createElement("p");
+      diagramTitle.className = "ascii-title";
+      diagramTitle.textContent = taskData.diagramTitle;
+      diagramWrap.appendChild(diagramTitle);
+    }
+
+    const pre = document.createElement("pre");
+    pre.className = "ascii-pre";
+    pre.textContent = taskData.diagram;
+    diagramWrap.appendChild(pre);
+    dom.taskContent.appendChild(diagramWrap);
+  }
 
   const prompt = document.createElement("p");
   prompt.textContent = taskData.prompt;
@@ -211,6 +230,9 @@ function renderTask(taskData) {
     label.append(input, text);
     dom.taskContent.appendChild(label);
   });
+
+  dom.submitButton.onclick = () => handleTaskSubmit(taskData);
+}
 
   // Register single-use submit callback for this specific task data.
   dom.submitButton.onclick = () => handleTaskSubmit(taskData);

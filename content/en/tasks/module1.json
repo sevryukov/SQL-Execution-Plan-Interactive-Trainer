@@ -1,4 +1,6 @@
 {
+  "diagramTitle": "Plan fragment",
+  "diagram": "SELECT ... FROM Orders o JOIN OrderItems i ON o.OrderID = i.OrderID\n\n   o (few rows)\n       |\n       v\n +---------------+\n | NESTED LOOP ? |\n +---------------+\n       ^\n       |\n i via index(OrderID)",
   "prompt": "For a query joining Orders (small filtered set) to OrderItems (indexed by OrderID), which join operator is usually preferred?",
   "options": [
     "Hash Join",
