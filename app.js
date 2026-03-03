@@ -20,6 +20,20 @@ const STORAGE_KEY = "sqlPlanTrainerState";
  */
 function resolveBasePath() {
   const path = window.location.pathname;
+
+  // If already a directory-like URL, use as-is.
+  if (path.endsWith("/")) return path;
+
+  // Distinguish file-like paths (`/index.html`) from project-root paths
+  // without trailing slash (`/repo-name`).
+  const lastSegment = path.split("/").pop() || "";
+  const looksLikeFile = lastSegment.includes(".");
+
+  if (looksLikeFile) {
+    return `${path.substring(0, path.lastIndexOf("/") + 1)}`;
+  }
+
+  return `${path}/`;
   if (path.endsWith("/")) return path;
   return `${path.substring(0, path.lastIndexOf("/") + 1)}`;
 }
