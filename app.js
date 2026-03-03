@@ -11,6 +11,26 @@
 
 const STORAGE_KEY = "sqlPlanTrainerState";
 
+/**
+ * Resolve runtime base path so fetches work on GitHub Pages project URLs
+ * with and without trailing slash.
+ * Examples:
+ * - /SQL-Execution-Plan-Interactive-Trainer/ -> /SQL-Execution-Plan-Interactive-Trainer/
+ * - /SQL-Execution-Plan-Interactive-Trainer/index.html -> /SQL-Execution-Plan-Interactive-Trainer/
+ */
+function resolveBasePath() {
+  const path = window.location.pathname;
+  if (path.endsWith("/")) return path;
+  return `${path.substring(0, path.lastIndexOf("/") + 1)}`;
+}
+
+const APP_BASE_PATH = resolveBasePath();
+
+/** Build asset URLs relative to the app base path. */
+function assetUrl(relativePath) {
+  return `${APP_BASE_PATH}${relativePath}`;
+}
+
 const uiText = {
   en: {
     appTitle: "SQL Plan Trainer",
@@ -123,6 +143,8 @@ function renderScore() {
   dom.scoreValue.textContent = String(state.score);
 }
 
+async function fetchJson(path) {
+  const response = await fetch(assetUrl(path));
 /**
  * Fetch JSON with robust error messages.
  */
@@ -134,6 +156,8 @@ async function fetchJson(path) {
   return response.json();
 }
 
+async function fetchMarkdownAsHtml(path) {
+  const response = await fetch(assetUrl(path));
 /**
  * Fetch markdown and convert to HTML using marked.js CDN library.
  */
