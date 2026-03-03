@@ -1,0 +1,17 @@
+{
+  "diagramTitle": "Фрагмент плана",
+  "diagram": "SELECT ... FROM Orders o JOIN OrderItems i ON o.OrderID = i.OrderID\n\n   o (мало строк)\n       |\n       v\n +---------------+\n | NESTED LOOP ? |\n +---------------+\n       ^\n       |\n i через index(OrderID)",
+  "prompt": "Для запроса, который соединяет небольшой отфильтрованный набор Orders с OrderItems (есть индекс по OrderID), какой оператор чаще всего выбирается?",
+  "options": [
+    "Hash Join",
+    "Nested Loop Join",
+    "Merge Join",
+    "Cartesian Product"
+  ],
+  "correctIndex": 1,
+  "points": 10,
+  "feedback": {
+    "correct": "Верно! При небольшом внешнем наборе и индексе на внутренней таблице часто выбирается Nested Loop Join.",
+    "incorrect": "Неверно. Подумайте о связке: маленький внешний набор + индекс по ключу соединения."
+  }
+}

@@ -1,0 +1,254 @@
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-alt: #eef3ff;
+  --text: #1c2431;
+  --muted: #5f6b7c;
+  --primary: #375dff;
+  --primary-dark: #2849d4;
+  --success: #157347;
+  --error: #b42318;
+  --border: #d8deeb;
+  --shadow: 0 8px 24px rgba(24, 39, 75, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1.5rem;
+}
+
+.sidebar-header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.sidebar-header p {
+  margin: 0.35rem 0 1.25rem;
+  color: var(--muted);
+}
+
+.nav-title {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
+
+.topic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.topic-btn {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.topic-btn:hover,
+.topic-btn:focus-visible {
+  border-color: var(--primary);
+  background: var(--surface-alt);
+  outline: none;
+}
+
+.topic-btn.active {
+  border-color: var(--primary);
+  background: var(--surface-alt);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.main-content {
+  padding: 1.5rem;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.score-box {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: baseline;
+}
+
+#score-value {
+  color: var(--primary);
+  font-size: 1.4rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+#language-switcher {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.38rem 0.5rem;
+  background: var(--surface);
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.panel h2 {
+  margin: 0 0 0.75rem;
+}
+
+.markdown-body p,
+.markdown-body li {
+  line-height: 1.55;
+}
+
+.markdown-body pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  overflow-x: auto;
+}
+
+.placeholder {
+  color: var(--muted);
+}
+
+#task-content {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ascii-diagram {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fbff;
+  padding: 0.75rem;
+}
+
+.ascii-title {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.ascii-pre {
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  background: #0f172a;
+  color: #cce3ff;
+  border-radius: 8px;
+  padding: 0.7rem;
+  font: 0.82rem/1.35 "JetBrains Mono", "Fira Code", Consolas, monospace;
+}
+
+.option-label {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  cursor: pointer;
+}
+
+.submit-btn {
+  margin-top: 0.8rem;
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submit-btn:hover,
+.submit-btn:focus-visible {
+  background: var(--primary-dark);
+  outline: none;
+}
+
+.feedback {
+  margin-top: 0.8rem;
+  min-height: 2rem;
+  border-radius: 8px;
+  padding: 0.6rem;
+  display: none;
+}
+
+.feedback.success {
+  display: block;
+  background: #e8f7ef;
+  color: var(--success);
+}
+
+.feedback.error {
+  display: block;
+  background: #fff1f0;
+  color: var(--error);
+}
+
+@media (max-width: 920px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}

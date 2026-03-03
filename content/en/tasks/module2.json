@@ -1,0 +1,17 @@
+{
+  "diagramTitle": "Predicate and access path",
+  "diagram": "WHERE OrderDate = '2024-01-10'\n\nOrders(OrderDate) index exists\n\nB-Tree root\n   |\n   +--> branch --> leaf[key='2024-01-10'] --> row pointers",
+  "prompt": "Which condition most strongly encourages an Index Seek?",
+  "options": [
+    "Predicate uses a function around the indexed column",
+    "No index exists on the filtered column",
+    "Highly selective predicate on an indexed column",
+    "Query requests every row from the table"
+  ],
+  "correctIndex": 2,
+  "points": 10,
+  "feedback": {
+    "correct": "Exactly. High selectivity on an indexed column lets the engine seek directly to a small row subset.",
+    "incorrect": "Incorrect. Think about selectivity and whether the engine can directly navigate the index tree."
+  }
+}
