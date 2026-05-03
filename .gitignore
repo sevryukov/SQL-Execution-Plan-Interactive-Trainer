@@ -1,1 +1,13 @@
-Nothing should be ignored based on the provided file changes. The only added file is README.md, which is a source/config file and should not be ignored.
+# Dependencies
+node_modules/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
