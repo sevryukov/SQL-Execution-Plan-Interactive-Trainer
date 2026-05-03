@@ -34,8 +34,6 @@ function resolveBasePath() {
   }
 
   return `${path}/`;
-  if (path.endsWith("/")) return path;
-  return `${path.substring(0, path.lastIndexOf("/") + 1)}`;
 }
 
 const APP_BASE_PATH = resolveBasePath();
@@ -158,11 +156,6 @@ function renderScore() {
 }
 
 async function fetchJson(path) {
-  const response = await fetch(assetUrl(path));
-/**
- * Fetch JSON with robust error messages.
- */
-async function fetchJson(path) {
   const response = await fetch(path);
   if (!response.ok) {
     throw new Error(`Failed to fetch JSON: ${path} (${response.status})`);
@@ -170,11 +163,6 @@ async function fetchJson(path) {
   return response.json();
 }
 
-async function fetchMarkdownAsHtml(path) {
-  const response = await fetch(assetUrl(path));
-/**
- * Fetch markdown and convert to HTML using marked.js CDN library.
- */
 async function fetchMarkdownAsHtml(path) {
   const response = await fetch(path);
   if (!response.ok) {
@@ -269,10 +257,6 @@ function renderTask(taskData) {
     dom.taskContent.appendChild(label);
   });
 
-  dom.submitButton.onclick = () => handleTaskSubmit(taskData);
-}
-
-  // Register single-use submit callback for this specific task data.
   dom.submitButton.onclick = () => handleTaskSubmit(taskData);
 }
 
